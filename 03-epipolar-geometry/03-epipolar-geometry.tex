@@ -67,7 +67,7 @@ In real world situations, however, we are not given the exact location of the 3D
 
 We will now try to develop seamless ways to map points and epipolar lines across views. If we take the setup given in the original epipolar geometry framework (Figure~\ref{fig:essential_fundamental_setup}), then we shall further define $M$ and $M'$ to be the camera projection matrices that map 3D points into their respective 2D image plane locations. Let us assume that the world reference system is associated to the first camera with the second camera offset first by a rotation $R$ and then by a translation $T$. This specifies the camera projection matrices to be:
 \begin{equation}
-    M = K\begin{bmatrix} I & 0\end{bmatrix} \ \ \ \ \ M' = K'\begin{bmatrix}R & T\end{bmatrix}
+    M = K\begin{bmatrix} I & 0\end{bmatrix} \ \ \ \ \ M' = K'\begin{bmatrix}R^T & -R^TT\end{bmatrix}
     \label{eq:projection_matrices}
 \end{equation}
 
@@ -75,15 +75,14 @@ We will now try to develop seamless ways to map points and epipolar lines across
 In the simplest case, let us assume that we have \emph{canonical cameras}, in which $K = K' = I$. This reduces Equation~\ref{eq:projection_matrices} to 
 
 \begin{equation}
-    M = \begin{bmatrix} I & 0\end{bmatrix} \ \ \ \ \ M' = \begin{bmatrix}R & T\end{bmatrix}
+    M = \begin{bmatrix} I & 0\end{bmatrix} \ \ \ \ \ M' = \begin{bmatrix}R^T & -R^TT\end{bmatrix}
     \label{eq:projection_matrices_canonical}
 \end{equation}
 
-Furthermore, this means that the location of $p'$ in the first camera's reference system is $R^Tp' - R^TT$. Since the vectors $R^Tp' - R^TT$ and $R^TT$ lie in the epipolar plane, then if we take the cross product of $R^TT\times(R^Tp' -R^T T) = R^TT \times R^Tp' = R^T(T \times p')$, we will get a vector normal to the epipolar plane. This also means that $p$, which lies in the epipolar plane is normal to $R^T(T\times p')$, giving us the constraint that their dot product is zero:
+Furthermore, this means that the location of $p'$ in the first camera's reference system is $Rp' + T$. Since the vectors $Rp' + T$ and $T$ lie in the epipolar plane, then if we take the cross product of $T\times(Rp' + T) = T \times(Rp')$, we will get a vector normal to the epipolar plane. This also means that $p$, which lies in the epipolar plane is normal to $T \times(Rp')$, giving us the constraint that their dot product is zero:
 \begin{equation}
     \begin{split}
-      (R^T(T\times p'))^T p = 0\\
-      (T\times p')^T R p = 0 \\
+      p^T\cdot[T \times(Rp')] = 0\\
     \end{split}
     \label{eq:essential1}
 \end{equation}
@@ -96,20 +95,19 @@ From linear algebra, we can introduce a different and compact expression for the
 Combining this expression with Equation~\ref{eq:essential1}, we can convert the cross product term into matrix multiplication, giving
 \begin{equation}
     \begin{split}
-        ([T_\times] p')^T R p = 0 \\ 
-    	  p'^T [T_\times]^T R p = 0 \\
-	  p'^T [T_\times] R p = 0
+      p^T\cdot[T_\times] (Rp') = 0\\
+    	  p^T [T_\times] R p' = 0 \\
     \end{split}
 \end{equation}
 The matrix $E = [T_\times]R$ is known as the \emph{Essential Matrix}, creating a compact expression for the epipolar constraint: 
 \begin{equation}
-    p'^T E p = 0
+    p^T E p' = 0
 \end{equation}
 The Essential matrix is a $3\times3$ matrix that contains 5 degrees of freedom. It has rank 2 and is singular. 
 
-The Essential matrix is useful for computing the epipolar lines associated with $p$ and $p'$. For instance, $\ell' = Ep$ gives the epipolar line in the image plane of camera 2. Similarly $\ell = E^Tp'$ gives the epipolar line in the image plane of camera 1. Other interesting properties of the essential matrix is that its dot product with the epipoles equate to zero: $Ee = E^Te' = 0$. 
+The Essential matrix is useful for computing the epipolar lines associated with $p$ and $p'$. For instance, $\ell' = E^Tp$ gives the epipolar line in the image plane of camera 2. Similarly $\ell = Ep'$ gives the epipolar line in the image plane of camera 1. Other interesting properties of the essential matrix is that its dot product with the epipoles equate to zero: $E^Te = Ee' = 0$. 
 %TODO: WHY???
-Because for any point $x$ (other than $e$) in the image of camera 1, the corresponding epipolar line in the image of camera 2, $l'=Ex$, contains the epipole $e'$. Thus $e'$ satisfies $e'^T(Ex) = (e'^TE)x=0$ for all the $x$, so $e'^TE=0$. Similarly $Ee=0$.
+Because for any point $x$ (other than $e$) in the image of camera 1, the corresponding epipolar line in the image of camera 2, $l'=E^Tx$, contains the epipole $e'$. Thus $e'$ satisfies $e'^T(E^Tx) = (e'^TE^T)x=0$ for all the $x$, so $e'^TE=0$. Similarly $E^Te=0$.
 
 %TODO: Section on deriving the Rotation and Translation from E  
 
